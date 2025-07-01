@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartVoteSL - Digital Election Management System</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>   
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="firebase-config.js"></script> 
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <i class="fas fa-vote-yea"></i>
+                <span>SmartVoteSL</span>
+            </div>
+            <div class="nav-menu" id="nav-menu">
+                <a href="#home" class="nav-link">Home</a>
+                <a href="#features" class="nav-link">Features</a>
+                <a href="#about" class="nav-link">About</a>
+                <a href="#" class="nav-link" onclick="document.getElementById('email-login-modal').style.display = 'block';">Vote Now</a>
+
+                <a href="#" class="nav-link" onclick="showAdminLogin()">Admin</a>
+            </div>
+            <div class="hamburger" id="hamburger">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Container -->
+    <div id="main-content">
+        <!-- Home Section -->
+        <section id="home" class="hero">
+            <div class="hero-content">
+                <h1>SmartVoteSL</h1>
+                <p class="hero-subtitle">Digital Election Management System for Sri Lanka</p>
+                <p class="hero-description">Secure, transparent, and efficient electoral process with QR-based voter verification and real-time results.</p>
+                <div class="hero-buttons">
+                    <button class="btn btn-primary" onclick="showVoterLogin()">
+                        <i class="fas fa-qrcode"></i> Vote Now
+                    </button>
+                    <button class="btn btn-secondary" onclick="showResults()">
+                        <i class="fas fa-chart-bar"></i> Live Results
+                    </button>
+                </div>
+            </div>
+            <div class="hero-image">
+                <i class="fas fa-vote-yea hero-icon"></i>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section id="features" class="features">
+            <div class="container">
+                <h2>Key Features</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <i class="fas fa-qrcode"></i>
+                        <h3>QR Code Verification</h3>
+                        <p>Secure voter login using QR codes at polling stations for enhanced security and speed.</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-mobile-alt"></i>
+                        <h3>User-Friendly Interface</h3>
+                        <p>Intuitive digital ballot interface designed for all age groups and accessibility needs.</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-shield-alt"></i>
+                        <h3>Secure Vote Storage</h3>
+                        <p>Encrypted vote storage with advanced security measures to protect electoral integrity.</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-chart-line"></i>
+                        <h3>Live Results Dashboard</h3>
+                        <p>Real-time vote counting and transparent result display for immediate updates.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" class="about">
+            <div class="container">
+                <h2>About SmartVoteSL</h2>
+                <div class="about-content">
+                    <div class="about-text">
+                        <p>SmartVoteSL addresses Sri Lanka's need for a more secure, transparent, and efficient electoral process. Our digital solution reduces manual dependency, accelerates vote counting, and empowers both voters and officials with a reliable system.</p>
+                        <div class="about-stats">
+                            <div class="stat">
+                                <h3>100%</h3>
+                                <p>Digital Process</p>
+                            </div>
+                            <div class="stat">
+                                <h3>Real-time</h3>
+                                <p>Results</p>
+                            </div>
+                            <div class="stat">
+                                <h3>Secure</h3>
+                                <p>QR Authentication</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Voter Login Modal -->
+    <div id="voter-login-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('voter-login-modal')">&times;</span>
+            <h2><i class="fas fa-qrcode"></i> Voter Login</h2>
+            <div class="qr-scanner-container">
+                <div class="qr-scanner">
+                    <i class="fas fa-qrcode qr-icon"></i>
+                    <p>Scan your QR code to login</p>
+                    <button class="btn btn-primary" onclick="simulateQRScan()">
+                        <i class="fas fa-camera"></i> Start QR Scanner
+                    </button>
+                </div>
+                <div class="manual-login">
+                    <p>Register with your details:</p>
+                        <input type="text" id="voter-fullname" placeholder="Full Name" class="form-input" required>
+                        <input type="text" id="voter-nic" placeholder="NIC Number (e.g., 199934400123 or 943212345V)" class="form-input" required>
+                        <input type="email" id="voter-email" placeholder="Email Address" class="form-input" required>
+                        <button class="btn btn-secondary" onclick="registerVoter()">Register</button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Voting Interface -->
+    <div id="voting-interface" class="page-container" style="display: none;">
+        <div class="voting-header">
+            <h1><i class="fas fa-vote-yea"></i> Digital Ballot</h1>
+            <div class="voter-info">
+                <span id="voter-name">Welcome, Voter</span>
+                <button class="btn btn-outline" onclick="logout()">Logout</button>
+            </div>
+        </div>
+        
+        <div class="ballot-container">
+            <div class="ballot-header">
+                <h2>Presidential Election 2024</h2>
+                <p>Select one candidate below:</p>
+            </div>
+            
+            <div class="candidates-list" id="candidates-list">
+                <!-- Candidates will be populated by JavaScript -->
+            </div>
+            
+            <div class="voting-actions">
+                <button class="btn btn-primary btn-large" onclick="submitVote()" id="submit-vote-btn" disabled>
+                    <i class="fas fa-check"></i> Submit Vote
+                </button>
+                <button class="btn btn-outline" onclick="clearSelection()">
+                    <i class="fas fa-undo"></i> Clear Selection
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Dashboard -->
+    <div id="results-dashboard" class="page-container" style="display: none;">
+        <div class="dashboard-header">
+            <h1><i class="fas fa-chart-bar"></i> Live Election Results</h1>
+            <div class="dashboard-controls">
+                <button class="btn btn-outline" onclick="refreshResults()">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+                <button class="btn btn-secondary" onclick="goHome()">
+                    <i class="fas fa-home"></i> Home
+                </button>
+            </div>
+        </div>
+        
+        <div class="results-container">
+            <div class="results-summary">
+                <div class="summary-card">
+                    <h3>Total Votes</h3>
+                    <span class="summary-number" id="total-votes">0</span>
+                </div>
+                <div class="summary-card">
+                    <h3>Voter Turnout</h3>
+                    <span class="summary-number" id="voter-turnout">0%</span>
+                </div>
+                <div class="summary-card">
+                    <h3>Polling Stations</h3>
+                    <span class="summary-number">1,247</span>
+                </div>
+            </div>
+            
+            <div class="results-chart" id="results-chart">
+                <!-- Results will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+    <div id="email-login-modal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal('email-login-modal')">&times;</span>
+    <h2><i class="fas fa-user"></i> Voter Email Login</h2>
+    <input type="email" id="login-email" placeholder="Email" class="form-input">
+    <input type="password" id="login-password" placeholder="Password" class="form-input">
+    <button class="btn btn-primary" onclick="emailLogin()">Login</button>
+    <p>Don't have an account? <a href="#" onclick="showRegister()">Register</a></p>
+  </div>
+</div>
+
+<!-- Register Modal -->
+<div id="register-modal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal('register-modal')">&times;</span>
+    <h2><i class="fas fa-user-plus"></i> Register</h2>
+    <input type="email" id="reg-email" placeholder="Email" class="form-input">
+    <input type="password" id="reg-password" placeholder="Password" class="form-input">
+    <button class="btn btn-secondary" onclick="registerUser()">Register</button>
+  </div>
+</div>
+
+    <!-- Admin Login Modal -->
+    <div id="admin-login-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('admin-login-modal')">&times;</span>
+            <h2><i class="fas fa-user-shield"></i> Admin Login</h2>
+            <form class="admin-login-form">
+                <div class="form-group">
+                    <label for="admin-username">Username:</label>
+                    <input type="text" id="admin-username" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="admin-password">Password:</label>
+                    <input type="password" id="admin-password" class="form-input" required>
+                </div>
+                <button type="button" class="btn btn-primary btn-full" onclick="adminLogin()">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div id="admin-dashboard" class="page-container" style="display: none;">
+        <div class="admin-header">
+            <h1><i class="fas fa-cogs"></i> Admin Dashboard</h1>
+            <div class="admin-controls">
+                <button class="btn btn-outline" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+        
+        <div class="admin-content">
+            <div class="admin-tabs">
+                <button class="tab-btn active" onclick="showAdminTab('overview')">Overview</button>
+                <button class="tab-btn" onclick="showAdminTab('voters')">Voters</button>
+                <button class="tab-btn" onclick="showAdminTab('candidates')">Candidates</button>
+                <button class="tab-btn" onclick="showAdminTab('settings')">Settings</button>
+            </div>
+            
+            <div id="admin-overview" class="admin-tab-content active">
+                <div class="admin-stats">
+                    <div class="stat-card">
+                        <h3>Registered Voters</h3>
+                        <span class="stat-number">15,678,432</span>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Votes Cast</h3>
+                        <span class="stat-number" id="admin-votes-cast">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Active Stations</h3>
+                        <span class="stat-number">1,247</span>
+                    </div>
+                    <div class="stat-card">
+                        <h3>System Status</h3>
+                        <span class="stat-status online">Online</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="admin-voters" class="admin-tab-content">
+                <h3>Voter Management</h3>
+                <div class="voter-search">
+                    <input type="text" placeholder="Search voters..." class="form-input">
+                    <button class="btn btn-primary">Search</button>
+                </div>
+                <div class="voter-list">
+                    <p>Voter management interface would be implemented here.</p>
+                </div>
+            </div>
+            
+            <div id="admin-candidates" class="admin-tab-content">
+                <h3>Candidate Management</h3>
+                <div class="candidate-management">
+                    <button class="btn btn-primary">Add Candidate</button>
+                    <div class="candidates-admin-list">
+                        <p>Candidate management interface would be implemented here.</p>
+                        <div class="add-candidate-form">
+                            <input type="text" id="new-candidate-name" placeholder="Enter candidate name" class="form-input">
+                            <button class="btn btn-primary" onclick="addCandidate()">Add Candidate</button>
+                        </div>
+                        <div id="candidates-admin-list" class="candidates-admin-list">
+                             <!-- Candidate list will be loaded here -->
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            
+            <div id="admin-settings" class="admin-tab-content">
+                <h3>System Settings</h3>
+                <div class="settings-grid">
+                    <div class="setting-item">
+                        <label>Election Status:</label>
+                        <select class="form-input">
+                            <option>Active</option>
+                            <option>Inactive</option>
+                            <option>Maintenance</option>
+                        </select>
+                    </div>
+                    <div class="setting-item">
+                        <label>Voting Hours:</label>
+                        <input type="text" value="7:00 AM - 6:00 PM" class="form-input">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="success-modal" class="modal">
+        <div class="modal-content success-content">
+            <i class="fas fa-check-circle success-icon"></i>
+            <h2>Vote Submitted Successfully!</h2>
+            <p>Thank you for participating in the democratic process.</p>
+            <button class="btn btn-primary" onclick="closeSuccessModal()">Close</button>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
