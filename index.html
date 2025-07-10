@@ -6,11 +6,16 @@
     <title>SmartVoteSL - Digital Election Management System</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>   
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="firebase-config.js"></script> 
+    <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
 </head>
 <body>
     <!-- Navigation -->
@@ -127,14 +132,7 @@
                         <i class="fas fa-camera"></i> Start QR Scanner
                     </button>
                 </div>
-                <div class="manual-login">
-                    <p>Register with your details:</p>
-                        <input type="text" id="voter-fullname" placeholder="Full Name" class="form-input" required>
-                        <input type="text" id="voter-nic" placeholder="NIC Number (e.g., 199934400123 or 943212345V)" class="form-input" required>
-                        <input type="email" id="voter-email" placeholder="Email Address" class="form-input" required>
-                        <button class="btn btn-secondary" onclick="registerVoter()">Register</button>
-
-                </div>
+                
             </div>
         </div>
     </div>
@@ -288,26 +286,27 @@
                 </div>
             </div>
             
+            
+                
             <div id="admin-voters" class="admin-tab-content">
                 <h3>Voter Management</h3>
-                <div class="voter-search">
-                    <input type="text" placeholder="Search voters..." class="form-input">
-                    <button class="btn btn-primary">Search</button>
-                </div>
-                <div class="voter-list">
-                    <p>Voter management interface would be implemented here.</p>
-                </div>
+                <button class="btn btn-secondary" onclick="generateVoterQRCodes()">Show Registered Voters with QR Codes</button>
+                <div id="voter-qr-container" style="margin-top: 2rem; display: grid; gap: 2rem;"></div>
+
             </div>
-            
+
+                
             <div id="admin-candidates" class="admin-tab-content">
                 <h3>Candidate Management</h3>
                 <div class="candidate-management">
-                    <button class="btn btn-primary">Add Candidate</button>
+                    
                     <div class="candidates-admin-list">
-                        <p>Candidate management interface would be implemented here.</p>
+                        
                         <div class="add-candidate-form">
-                            <input type="text" id="new-candidate-name" placeholder="Enter candidate name" class="form-input">
-                            <button class="btn btn-primary" onclick="addCandidate()">Add Candidate</button>
+                            <input type="text" id="new-candidate-name" placeholder="Candidate Name">
+                            <input type="text" id="new-candidate-party" placeholder="Party Name">
+                            
+                            <button onclick="addCandidate()">Add Candidate</button>
                         </div>
                         <div id="candidates-admin-list" class="candidates-admin-list">
                              <!-- Candidate list will be loaded here -->
