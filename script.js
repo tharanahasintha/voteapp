@@ -1,3 +1,7 @@
+// script.js
+
+
+
 // ===== MODAL CONTROL =====
 function showVoterLogin() {
   document.getElementById('voter-login-modal').style.display = 'block';
@@ -248,11 +252,46 @@ function adminLogin() {
     document.getElementById("admin-login-modal").style.display = "none";
     document.getElementById("admin-dashboard").style.display = "block";
     document.getElementById("main-content").style.display = "none";
+    refreshResults();
     loadCandidatesAdmin();
+    updateAdminStats();
   } else {
     alert("Invalid admin credentials");
   }
 }
+function updateElectionStatus() {
+    const status = document.getElementById("election-status-select").value;
+    database.ref("settings/electionStatus").set(status).then(() => {
+        alert("Election status updated to: " + status);
+        updateAdminStats(); // refresh admin display
+    });
+}
+
+function updateAdminStats() {
+    // Registered voters
+    database.ref("voters").once("value").then(snapshot => {
+        const count = snapshot.numChildren();
+        document.getElementById("admin-registered-voters").innerText = count.toLocaleString();
+    });
+
+    // Votes cast
+    database.ref("votes").once("value").then(snapshot => {
+        const count = snapshot.numChildren();
+        document.getElementById("admin-votes-cast").innerText = count.toLocaleString();
+    });
+
+    // Election system status
+    database.ref("settings/electionStatus").once("value").then(snapshot => {
+        const status = snapshot.val() || "Unknown";
+        const statusEl = document.getElementById("system-status");
+        statusEl.innerText = status;
+        statusEl.className = "stat-status " + status.toLowerCase();
+        // Optional: also update dropdown to match current value
+        const select = document.getElementById("election-status-select");
+        if (select) select.value = status;
+    });
+}
+
 
 function addCandidate() {
   const name = document.getElementById("new-candidate-name").value.trim();
@@ -337,14 +376,29 @@ function refreshResults() {
   database.ref("votes").once("value").then(voteSnap => {
     database.ref("candidates").once("value").then(candidateSnap => {
       let totalVotes = 0;
-      voteSnap.forEach(vote => totalVotes += vote.val());
+
+      // First, calculate total votes
+      voteSnap.forEach(vote => {
+        totalVotes += vote.val();
+      });
+
+      // Update total votes on dashboard
       document.getElementById("total-votes").innerText = totalVotes;
 
+      // Calculate and show voter turnout (based on registered voters in your DB)
+      database.ref("voters").once("value").then(voterSnap => {
+        const registeredVoters = voterSnap.numChildren();
+        const turnoutPercentage = registeredVoters > 0 ? ((totalVotes / registeredVoters) * 100).toFixed(2) : 0;
+        document.getElementById("voter-turnout").innerText = `${turnoutPercentage}%`;
+        document.getElementById("admin-votes-cast").innerText = totalVotes;
+      });
+
+      // Now, render each candidate with their percentage
       candidateSnap.forEach(candidate => {
         const id = candidate.key;
         const data = candidate.val();
         const votes = voteSnap.child(id).val() || 0;
-        const percentage = totalVotes ? ((votes / totalVotes) * 100).toFixed(1) : 0;
+        const percentage = totalVotes > 0 ? ((votes / totalVotes) * 100).toFixed(1) : 0;
 
         chartContainer.innerHTML += `
           <div class="result-item">
@@ -357,7 +411,7 @@ function refreshResults() {
               <div class="vote-percentage">${percentage}%</div>
             </div>
             <div class="result-bar">
-              <div class="result-fill" style="width: ${percentage}%;"></div>
+              <div class="result-fill" style="width: ${percentage}%"></div>
             </div>
           </div>
         `;
@@ -365,6 +419,7 @@ function refreshResults() {
     });
   });
 }
+
 
 // ===== QR SCANNER =====
 let html5QrCode;
@@ -410,3 +465,10 @@ function stopQRScanner() {
   }
 }
 
+// Auto-refresh results every 10 seconds
+setInterval(() => {
+    const isResultsVisible = document.getElementById("results-dashboard").style.display !== "none";
+    if (isResultsVisible) {
+        refreshResults();
+    }
+}, 10000); // Refresh every 10,000 milliseconds = 10 seconds
