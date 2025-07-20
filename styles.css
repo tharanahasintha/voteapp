@@ -961,3 +961,17 @@ select:focus {
     transition-duration: 0.01ms !important;
   }
 }
+.stat-status.online {
+    color: green;
+    font-weight: bold;
+}
+.stat-status.offline {
+    color: red;
+    font-weight: bold;
+}
+.stat-status.maintenance {
+    color: orange;
+    font-weight: bold;
+}
+
+
