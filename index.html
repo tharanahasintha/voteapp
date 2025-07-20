@@ -29,7 +29,8 @@
                 <a href="#home" class="nav-link">Home</a>
                 <a href="#features" class="nav-link">Features</a>
                 <a href="#about" class="nav-link">About</a>
-                <a href="#" class="nav-link" onclick="document.getElementById('email-login-modal').style.display = 'block';">Vote Now</a>
+                <a href="#" class="nav-link" onclick="document.getElementById('register-modal').style.display = 'block';">Register Now</a>
+
 
                 <a href="#" class="nav-link" onclick="showAdminLogin()">Admin</a>
             </div>
@@ -269,7 +270,7 @@
                 <div class="admin-stats">
                     <div class="stat-card">
                         <h3>Registered Voters</h3>
-                        <span class="stat-number">15,678,432</span>
+                        <span class="stat-number" id="admin-registered-voters">0</span>
                     </div>
                     <div class="stat-card">
                         <h3>Votes Cast</h3>
@@ -281,7 +282,7 @@
                     </div>
                     <div class="stat-card">
                         <h3>System Status</h3>
-                        <span class="stat-status online">Online</span>
+                        <span class="stat-status" id="system-status">Checking...</span>
                     </div>
                 </div>
             </div>
@@ -321,10 +322,10 @@
                 <div class="settings-grid">
                     <div class="setting-item">
                         <label>Election Status:</label>
-                        <select class="form-input">
-                            <option>Active</option>
-                            <option>Inactive</option>
-                            <option>Maintenance</option>
+                        <select id="election-status-select" class="form-input" onchange="updateElectionStatus()">
+                            <option value="Online">Online</option>
+                            <option value="Offline">Offline</option>
+                            <option value="Maintenance">Maintenance</option>
                         </select>
                     </div>
                     <div class="setting-item">
